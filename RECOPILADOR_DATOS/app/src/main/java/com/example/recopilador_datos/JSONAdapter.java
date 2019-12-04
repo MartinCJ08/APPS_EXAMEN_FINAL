@@ -36,7 +36,7 @@ public class JSONAdapter extends ArrayAdapter<JSONObject> {
 
         TextView txtTemp, txtHum, txtFecha;
 
-        if(convertView == null){ //NO EXISTE LA FILA, HAY QUE CREARLA
+        if(convertView == null){
             LayoutInflater layoutInflater = ((Activity)context).getLayoutInflater();
             convertView = layoutInflater.inflate(layout, parent, false);
         }

@@ -8,8 +8,8 @@ var Task={
         return db.query("select * from weather where id=?",[id],callback);
     },
     addTask:function(Task,callback){
-        return db.query("INSERT INTO weather (temp, hum, lat, lon, fecha) VALUES (?,?,?,?,?)",
-        [Task.temp, Task.hum, Task.lat,Task.lon,Task.fecha], callback);
+        return db.query("INSERT INTO weather (temp, hum, lat, lon, fecha, hour) VALUES (?,?,?,?,?,?)",
+        [Task.temp, Task.hum, Task.lat,Task.lon,Task.fecha, Task.hour], callback);
         // return db.query("insert into products(productname,unitprice) values(?,?)",[Task.Productname,Task.Unitprice],callback);
     },
     deleteTask:function(id,callback){
