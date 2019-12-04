@@ -1,34 +1,99 @@
 package com.example.recopilador_datos;
 
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.DatePickerDialog;
+import android.icu.util.Calendar;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
+import android.view.View;
+import android.widget.DatePicker;
+import android.widget.EditText;
 import android.widget.ListView;
-import android.widget.TextView;
-import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.BufferedReader;
-import java.io.Console;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.SortedSet;
 
+@RequiresApi(api = Build.VERSION_CODES.N)
 public class MainActivity extends AppCompatActivity {
-    private ListView listView;
-    TextView txtDaton;
-    private ArrayList<JSONObject> miLista = new ArrayList<JSONObject>();
+    ListView listView;
+    List<JSONObject> miLista = new ArrayList<>();
+    MySQLAPIConnection cn;
+
+    static String searchDay = "";
+    static String searchMonth = "";
+    static String searchYear = "";
+    static String finalDate = "";
+
+    private static final String ZERO = "0";
+    private static final String SLASH = "/";
+
+    public final Calendar c = Calendar.getInstance();
+
+    final int mes = c.get(Calendar.MONTH);
+    final int dia = c.get(Calendar.DAY_OF_MONTH);
+    final int anio = c.get(Calendar.YEAR);
+
+    EditText etFecha;
+
+//    String MY_URL = "http://192.168.0.14:3000/Tasks/"+searchDay+"/"+searchMonth+"/"+searchYear;
+//    String result = "";
+//    Handler mHandler = new Handler();
+//
+//    Thread mThread = new Thread(new Runnable() {
+//        @Override
+//        public void run () {
+//            try {
+//                // LECTURA GET
+//                URL path = new URL(MY_URL);
+//                HttpURLConnection httpURLConnection = (HttpURLConnection) path.openConnection();
+//                if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK){
+//                    InputStreamReader inputStreamReader = new InputStreamReader(httpURLConnection.getInputStream());
+//                    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+//                    result = bufferedReader.readLine();
+//                }
+//            } catch (MalformedURLException e) {
+//                e.printStackTrace();
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+//            mHandler.post(new Runnable() {
+//                @Override
+//                public void run () {
+//                    if(result != null){
+//                        try {
+//                            JSONArray jsData = new JSONArray(result);
+//                            for (int i  = 0; i<jsData.length();i++){
+//                                miLista.add(jsData.getJSONObject(i));
+//                            }
+//                            if(!miLista.isEmpty()){
+//                                listView.setAdapter(
+//                                        new JSONAdapter(MainActivity.this,R.layout.json_item,miLista)
+//                                );
+//                            }
+//                        } catch (JSONException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                }
+//            });
+//        }
+//    });
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,34 +101,62 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         listView = findViewById(R.id.listView);
-        txtDaton = findViewById(R.id.txtDaton);
+        etFecha = findViewById(R.id.etFecha);
 
-        MySQLAPIConnection cn =  new MySQLAPIConnection();
+//        mThread.start();
+
+        cn =  new MySQLAPIConnection();
         cn.execute();
     }
+
+    public void onClick(View view){
+        showDatePickerDialog();
+    }
+
+    private void showDatePickerDialog() {
+        DatePickerDialog pickDate = new DatePickerDialog(this, new DatePickerDialog.OnDateSetListener() {
+            @Override
+            public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
+                final int mesActual = month + 1;
+                searchDay = (dayOfMonth < 10)? ZERO + dayOfMonth :String.valueOf(dayOfMonth);
+                searchMonth = (mesActual < 10)? ZERO + mesActual :String.valueOf(mesActual);
+                searchYear = year+"";
+                finalDate = searchDay + SLASH + searchMonth + SLASH + year;
+                etFecha.setText(finalDate);
+
+//                cn =  new MySQLAPIConnection();
+//                cn.execute();
+
+//                cn.cancel(true);
+//                if(cn.isCancelled()){
+//                    Log.wtf("wtf", "Cancelado alv");
+//                   cn.execute();
+//                }
+            }
+        },anio, mes, dia);
+        pickDate.show();
+    }
+
 
     /**
      * CREATE CONNECTION
      */
-
     class MySQLAPIConnection extends AsyncTask<String, Void, String> {
 
-        private final String MY_URL = "http://192.168.0.3:3000/Tasks";
-        private String result = null;
+//        private String MY_URL = "http://192.168.0.14:3000/Tasks/11/12/2019";
+        private String MY_URL = "http://192.168.0.14:3000/Tasks/fechas/11/12/2019";
+        private String result = "";
 
         @Override
         protected String doInBackground(String... strings) {
             try {
-                //LECTURA GET
+                // LECTURA GET
                 URL path = new URL(MY_URL);
                 HttpURLConnection httpURLConnection = (HttpURLConnection) path.openConnection();
-                Log.wtf("wtf", "doInBackground: " );
                 if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK){
-                    Log.wtf("wtf","en el if");
                     InputStreamReader inputStreamReader = new InputStreamReader(httpURLConnection.getInputStream());
                     BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
                     result = bufferedReader.readLine();
-                    Log.wtf("WTF", result);
                 }
             } catch (MalformedURLException e) {
                 e.printStackTrace();
@@ -76,22 +169,21 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected void onPostExecute(String s) {
             super.onPostExecute(s);
-            String sVal ="";
-            Log.wtf("wtf","post execute papa");
-//            Toast.makeText(getApplicationContext(),"S"+s,Toast.LENGTH_SHORT).show();
-            if(!s.equals("")){
+            if(s != null){
                 try {
                     JSONArray jsData = new JSONArray(s);
-                    Toast.makeText(MainActivity.this, ""+jsData.get(0), Toast.LENGTH_SHORT).show();
+                    for (int i  = 0; i<jsData.length();i++){
+                        miLista.add(jsData.getJSONObject(i));
+                    }
+                    if(!miLista.isEmpty()){
+                        listView.setAdapter(
+                                new JSONAdapter(MainActivity.this,R.layout.json_item,miLista)
+                        );
+                    }
                 } catch (JSONException e) {
-                    Toast.makeText(getApplicationContext(), "pito"+e, Toast.LENGTH_LONG).show();
-                    Log.wtf("WTF", "e "+e);
                     e.printStackTrace();
                 }
-            }else{
-                Log.wtf("wtf", "nulo, papa");
             }
         }
     }
-
 }

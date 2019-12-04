@@ -17,7 +17,10 @@ var Task={
     },
     updateTask:function(id,Task,callback){
         return db.query("update products set Productname=?, Unitprice=? where productid=?",[Task.Productname,Task.Unitprice,id],callback);
-    }  
+    },
+    getTaskByDate:function(data,callback){
+        return db.query("SELECT * FROM weather WHERE fecha = ?",[data],callback);
+    } 
 };
 
 module.exports=Task;

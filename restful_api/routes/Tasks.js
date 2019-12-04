@@ -28,6 +28,31 @@ router.get('/:id?',function(req,res,next){
         });
     }
  });
+
+ router.get('/fechas/:d/:m/:y',function(req,res){
+     const d = req.params.d;
+     const m = req.params.m;
+     const y = req.params.y;
+
+    var strDate = d.concat('/',m,'/',y);
+    
+    // res.json({
+    //     day: d,
+    //     month: m,
+    //     year: y,
+    //     date: strDate
+    // });
+
+    Task.getTaskByDate(strDate, function(err,rows){
+        if(err)
+        {
+            res.json(err);
+        }
+        else{
+            res.json(rows);
+        }
+    }); 
+ });
  
  router.post('/',function(req,res,next){
     Task.addTask(req.body,function(err,count){
