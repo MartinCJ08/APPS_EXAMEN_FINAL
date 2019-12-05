@@ -50,7 +50,7 @@ public class JSONAdapter extends ArrayAdapter<JSONObject> {
         txtHum = convertView.findViewById(R.id.txtHum);
         txtFecha = convertView.findViewById(R.id.txtFecha);
         txtHour = convertView.findViewById(R.id.txtHour);
-        imgData = convertView.findViewById(R.id.imgData);
+        imgData = convertView.findViewById(R.id.imgData); 
 
 
         try {
