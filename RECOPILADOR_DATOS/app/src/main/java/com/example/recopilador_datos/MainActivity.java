@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -33,12 +34,9 @@ import java.util.SortedSet;
 public class MainActivity extends AppCompatActivity {
     ListView listView;
     List<JSONObject> miLista = new ArrayList<>();
+    List<JSONObject> myAdapterList = new ArrayList<>();
+    JSONAdapter myAdapter;
     MySQLAPIConnection cn;
-
-    static String searchDay = "";
-    static String searchMonth = "";
-    static String searchYear = "";
-    static String finalDate = "";
 
     private static final String ZERO = "0";
     private static final String SLASH = "/";
@@ -51,50 +49,6 @@ public class MainActivity extends AppCompatActivity {
 
     EditText etFecha;
 
-//    String MY_URL = "http://192.168.0.14:3000/Tasks/"+searchDay+"/"+searchMonth+"/"+searchYear;
-//    String result = "";
-//    Handler mHandler = new Handler();
-//
-//    Thread mThread = new Thread(new Runnable() {
-//        @Override
-//        public void run () {
-//            try {
-//                // LECTURA GET
-//                URL path = new URL(MY_URL);
-//                HttpURLConnection httpURLConnection = (HttpURLConnection) path.openConnection();
-//                if(httpURLConnection.getResponseCode() == HttpURLConnection.HTTP_OK){
-//                    InputStreamReader inputStreamReader = new InputStreamReader(httpURLConnection.getInputStream());
-//                    BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-//                    result = bufferedReader.readLine();
-//                }
-//            } catch (MalformedURLException e) {
-//                e.printStackTrace();
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//            mHandler.post(new Runnable() {
-//                @Override
-//                public void run () {
-//                    if(result != null){
-//                        try {
-//                            JSONArray jsData = new JSONArray(result);
-//                            for (int i  = 0; i<jsData.length();i++){
-//                                miLista.add(jsData.getJSONObject(i));
-//                            }
-//                            if(!miLista.isEmpty()){
-//                                listView.setAdapter(
-//                                        new JSONAdapter(MainActivity.this,R.layout.json_item,miLista)
-//                                );
-//                            }
-//                        } catch (JSONException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }
-//            });
-//        }
-//    });
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,7 +57,8 @@ public class MainActivity extends AppCompatActivity {
         listView = findViewById(R.id.listView);
         etFecha = findViewById(R.id.etFecha);
 
-//        mThread.start();
+        myAdapter = new JSONAdapter(MainActivity.this,R.layout.json_item,myAdapterList);
+        listView.setAdapter(myAdapter);
 
         cn =  new MySQLAPIConnection();
         cn.execute();
@@ -118,33 +73,36 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
                 final int mesActual = month + 1;
-                searchDay = (dayOfMonth < 10)? ZERO + dayOfMonth :String.valueOf(dayOfMonth);
-                searchMonth = (mesActual < 10)? ZERO + mesActual :String.valueOf(mesActual);
-                searchYear = year+"";
-                finalDate = searchDay + SLASH + searchMonth + SLASH + year;
+                String searchDay = (dayOfMonth < 10)? ZERO + dayOfMonth :String.valueOf(dayOfMonth);
+                String searchMonth = (mesActual < 10)? ZERO + mesActual :String.valueOf(mesActual);
+                String finalDate = searchDay + SLASH + searchMonth + SLASH + year;
                 etFecha.setText(finalDate);
 
-//                cn =  new MySQLAPIConnection();
-//                cn.execute();
+                myAdapterList.clear();
+                for(int i = 0;i<miLista.size();i++){
+                    try {
+                        if(miLista.get(i).getString("fecha").equals(finalDate)){
+                            myAdapterList.add(miLista.get(i));
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
 
-//                cn.cancel(true);
-//                if(cn.isCancelled()){
-//                    Log.wtf("wtf", "Cancelado alv");
-//                   cn.execute();
-//                }
+                myAdapter.notifyDataSetChanged();
+
             }
         },anio, mes, dia);
         pickDate.show();
     }
-
 
     /**
      * CREATE CONNECTION
      */
     class MySQLAPIConnection extends AsyncTask<String, Void, String> {
 
-//        private String MY_URL = "http://192.168.0.14:3000/Tasks/11/12/2019";
-        private String MY_URL = "http://192.168.0.14:3000/Tasks/fechas/11/12/2019";
+        private String MY_URL = "http://10.1.10.79:3000/Tasks";
+//        private String MY_URL = "http://10.8.18.43:3000/Tasks/fechas/04/12/2019";
         private String result = "";
 
         @Override
@@ -174,11 +132,14 @@ public class MainActivity extends AppCompatActivity {
                     JSONArray jsData = new JSONArray(s);
                     for (int i  = 0; i<jsData.length();i++){
                         miLista.add(jsData.getJSONObject(i));
+                        myAdapterList.add(jsData.getJSONObject(i));
                     }
+
                     if(!miLista.isEmpty()){
-                        listView.setAdapter(
-                                new JSONAdapter(MainActivity.this,R.layout.json_item,miLista)
-                        );
+                        myAdapter.notifyDataSetChanged();
+//                        listView.setAdapter(
+//                                new JSONAdapter(MainActivity.this,R.layout.json_item,myAdapterList)
+//                        );
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();

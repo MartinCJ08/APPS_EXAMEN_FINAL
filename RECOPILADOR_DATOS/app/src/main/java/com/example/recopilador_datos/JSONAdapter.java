@@ -54,7 +54,7 @@ public class JSONAdapter extends ArrayAdapter<JSONObject> {
 
 
         try {
-            txtTemp.setText("Temperatura: "+objects.get(position).getDouble("temp"));
+            txtTemp.setText("Temperatura: "+objects.get(position).getDouble("temp")+"°C");
             txtHum.setText("Humedad: "+objects.get(position).getDouble("hum"));
             txtFecha.setText("Fecha: "+objects.get(position).getString("fecha"));
             txtHour.setText("Hora: "+objects.get(position).getString("hour"));
